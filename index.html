@@ -2,7 +2,7 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>LIMITEDCHATS | Volgende Generatie AI Gesprekken</title>
     <style>
         /* --- Root Variabelen --- */
@@ -24,10 +24,15 @@
             display: flex; 
             flex-direction: column; 
             height: 100vh; 
+            height: -webkit-fill-available;
             background-color: var(--bg-color); 
             color: var(--text-main); 
             overflow: hidden;
+            position: fixed;
+            width: 100%;
         }
+
+        html { height: -webkit-fill-available; }
 
         /* --- Header Styling --- */
         header { 
@@ -40,6 +45,7 @@
             border-bottom: 1px solid #222;
             z-index: 100;
             position: relative;
+            flex-shrink: 0;
         }
 
         .logo { 
@@ -75,18 +81,14 @@
             flex: 1;
             flex-direction: column;
             width: 100%;
-            height: calc(100vh - 75px);
+            height: calc(100% - 75px);
             position: absolute;
             top: 75px;
             left: 0;
             opacity: 0;
             transition: opacity 0.5s ease;
         }
-        .view.active {
-            display: flex;
-            opacity: 1;
-            z-index: 10;
-        }
+        .view.active { display: flex; opacity: 1; z-index: 10; }
 
         /* --- Home Pagina Styling --- */
         #home-view {
@@ -111,7 +113,7 @@
         }
 
         .hero-title {
-            font-size: 4.5rem;
+            font-size: clamp(2.5rem, 8vw, 4.5rem);
             font-weight: 900;
             line-height: 1.1;
             color: white;
@@ -122,7 +124,7 @@
         .hero-title span { color: var(--accent-color); }
 
         .hero-subtitle {
-            font-size: 1.2rem;
+            font-size: clamp(1rem, 3vw, 1.2rem);
             color: var(--text-muted);
             max-width: 600px;
             margin-bottom: 40px;
@@ -137,6 +139,8 @@
             margin-bottom: 80px;
             opacity: 0;
             animation: slideUpFade 0.8s ease 0.6s forwards;
+            justify-content: center;
+            flex-wrap: wrap;
         }
 
         .btn-outline, .btn-primary-large {
@@ -146,43 +150,26 @@
             font-size: 1rem;
             cursor: pointer;
             transition: all 0.3s ease;
+            min-width: 180px;
         }
 
-        .btn-outline {
-            background: transparent;
-            color: white;
-            border: 2px solid #333;
-        }
+        .btn-outline { background: transparent; color: white; border: 2px solid #333; }
         .btn-outline:hover { border-color: var(--accent-color); color: var(--accent-color); }
 
-        .btn-primary-large {
-            background-color: var(--accent-color);
-            color: #000;
-            border: none;
-            box-shadow: 0 4px 15px rgba(255, 107, 0, 0.3);
-        }
+        .btn-primary-large { background-color: var(--accent-color); color: #000; border: none; box-shadow: 0 4px 15px rgba(255, 107, 0, 0.3); }
         .btn-primary-large:hover { background-color: #ff8533; transform: translateY(-3px); box-shadow: 0 6px 20px rgba(255, 107, 0, 0.5); }
 
         .stats-container {
             display: flex;
-            gap: 80px;
+            gap: clamp(30px, 8vw, 80px);
             opacity: 0;
             animation: slideUpFade 0.8s ease 0.8s forwards;
+            flex-wrap: wrap;
+            justify-content: center;
         }
 
-        .stat-item h3 {
-            font-size: 2.5rem;
-            color: var(--accent-color);
-            font-weight: 900;
-            margin-bottom: 5px;
-        }
-        .stat-item p {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 600;
-        }
+        .stat-item h3 { font-size: clamp(2rem, 5vw, 2.5rem); color: var(--accent-color); font-weight: 900; margin-bottom: 5px; }
+        .stat-item p { color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
 
         @keyframes slideUpFade {
             from { opacity: 0; transform: translateY(30px); }
@@ -226,14 +213,6 @@
         .ai { align-self: flex-start; background-color: var(--panel-bg); color: var(--text-main); border: 1px solid #222; border-bottom-left-radius: 2px; }
         .error { align-self: center; background-color: #ff4444; color: white; font-size: 0.8rem; }
 
-        .typing { display: flex; align-items: center; gap: 12px; padding: 12px 24px; }
-        .typing-star { width: 24px; height: 24px; fill: var(--accent-color); animation: pulseStar 1.5s infinite ease-in-out; }
-
-        @keyframes pulseStar {
-            0%, 100% { opacity: 0.4; transform: scale(0.8); }
-            50% { opacity: 1; transform: scale(1.1); }
-        }
-
         /* --- Input Area Styling --- */
         #input-area { 
             position: absolute;
@@ -247,20 +226,29 @@
             border-radius: 16px;
             border: 1px solid #333;
             box-shadow: var(--shadow-lg);
+            z-index: 100;
         }
 
-        input { flex: 1; padding: 12px; border: none; background: transparent; color: white; outline: none; font-size: 1rem; }
-        #send-btn { padding: 0 25px; background-color: var(--accent-color); color: #000; border: none; border-radius: 10px; cursor: pointer; font-weight: 700; }
+        input { flex: 1; padding: 12px; border: none; background: transparent; color: white; outline: none; font-size: 16px; }
+        #send-btn { padding: 0 25px; background-color: var(--accent-color); color: #000; border: none; border-radius: 10px; cursor: pointer; font-weight: 700; transition: all 0.3s; }
+        #send-btn:hover { background-color: #ff8533; }
         #send-btn:disabled { background-color: #555; cursor: not-allowed; }
 
-        /* Mobile Responsive */
+        /* Typing Animatie */
+        .typing { display: flex; align-items: center; gap: 12px; padding: 12px 24px; }
+        .typing-star { width: 24px; height: 24px; fill: var(--accent-color); animation: pulseStar 1.5s infinite ease-in-out; }
+        @keyframes pulseStar { 0%, 100% { opacity: 0.4; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.1); } }
+
+        /* --- Mobiele Media Queries --- */
         @media (max-width: 600px) {
-            .nav-links { display: none; }
             header { padding: 15px 20px; }
+            .nav-links { display: none; }
             .hero-title { font-size: 2.2rem; }
-            .hero-buttons { flex-direction: column; width: 100%; max-width: 300px; }
-            .stats-container { gap: 20px; flex-wrap: wrap; justify-content: center; }
-            #chat-container, #input-area { left: 10px; right: 10px; }
+            .hero-buttons { flex-direction: column; width: 100%; align-items: center; }
+            .btn-outline, .btn-primary-large { width: 90%; }
+            #chat-container { padding: 20px 15px 120px 15px; }
+            #input-area { bottom: 15px; left: 10px; right: 10px; width: calc(100% - 20px); padding: 10px; }
+            .message { max-width: 90%; padding: 14px 18px; }
         }
     </style>
 </head>
@@ -307,7 +295,6 @@
 <script src="sleutel.js"></script>
 
 <script>
-    // Veiligheidscheck voor API_KEY
     if (typeof API_KEY === 'undefined') {
         console.error("sleutel.js ontbreekt!");
     }
@@ -322,7 +309,7 @@
             document.getElementById('nav-home').classList.add('active-link');
         } else if(viewId === 'chat-view') {
             document.getElementById('nav-chat').classList.add('active-link');
-            setTimeout(() => document.getElementById('user-input').focus(), 100);
+            setTimeout(() => document.getElementById('user-input').focus(), 300);
         }
     }
 
@@ -397,6 +384,13 @@
 
     sendBtn.addEventListener('click', sendMessage);
     inputField.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+
+    // Fix voor mobiele browsers hoogte
+    const resetHeight = () => {
+        document.body.style.height = window.innerHeight + "px";
+    };
+    window.addEventListener('resize', resetHeight);
+    resetHeight();
 </script>
 
 </body>
