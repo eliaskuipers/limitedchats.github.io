@@ -95,7 +95,7 @@
             text-align: center;
             padding: 20px;
             background: radial-gradient(circle at center, #1a1a24 0%, var(--bg-color) 70%);
-            overflow-y: auto; /* Zorgt dat je kunt scrollen op kleine mobieltjes */
+            overflow-y: auto;
         }
 
         .hero-badge {
@@ -224,6 +224,7 @@
 
         .user { align-self: flex-end; background-color: var(--accent-color); color: #000; font-weight: 600; border-bottom-right-radius: 2px; }
         .ai { align-self: flex-start; background-color: var(--panel-bg); color: var(--text-main); border: 1px solid #222; border-bottom-left-radius: 2px; }
+        .error { align-self: center; background-color: #ff4444; color: white; font-size: 0.8rem; }
 
         .typing { display: flex; align-items: center; gap: 12px; padding: 12px 24px; }
         .typing-star { width: 24px; height: 24px; fill: var(--accent-color); animation: pulseStar 1.5s infinite ease-in-out; }
@@ -250,43 +251,14 @@
 
         input { flex: 1; padding: 12px; border: none; background: transparent; color: white; outline: none; font-size: 1rem; }
         #send-btn { padding: 0 25px; background-color: var(--accent-color); color: #000; border: none; border-radius: 10px; cursor: pointer; font-weight: 700; }
+        #send-btn:disabled { background-color: #555; cursor: not-allowed; }
 
-        /* ========================================= */
-        /* --- MOBILE RESPONSIVE UPDATES --- */
-        /* ========================================= */
-
-        @media (max-width: 992px) {
-            #chat-container, #input-area { left: 5%; right: 5%; padding-left: 5%; padding-right: 5%; }
-            header { padding: 15px 25px; }
-            .hero-title { font-size: 3rem; }
-        }
-
+        /* Mobile Responsive */
         @media (max-width: 600px) {
-            /* Header aanpassingen */
-            .nav-links { display: none; } /* Verberg tekstlinks op mobiel voor ruimte */
+            .nav-links { display: none; }
             header { padding: 15px 20px; }
-            .header-btn { padding: 8px 16px; font-size: 0.8rem; }
-
-            /* Home view aanpassingen */
-            .hero-title { font-size: 2.2rem; margin-top: 20px; }
-            .hero-subtitle { font-size: 1rem; padding: 0 10px; }
-            .hero-buttons { flex-direction: column; width: 100%; max-width: 300px; gap: 10px; margin-bottom: 40px; }
-            .stats-container { gap: 20px; flex-wrap: wrap; justify-content: center; }
-            .stat-item h3 { font-size: 1.8rem; }
-
-            /* Chat view aanpassingen */
-            #chat-container { padding: 20px 15px 100px 15px; gap: 15px; }
-            .message { max-width: 90%; font-size: 0.9rem; padding: 12px 16px; }
-            
-            #input-area { 
-                bottom: 10px; 
-                left: 10px; 
-                right: 10px; 
-                padding: 8px; 
-                border-radius: 12px; 
-            }
-            #send-btn { padding: 0 15px; font-size: 0.85rem; }
-            input { font-size: 0.9rem; }
+            .hero-title { font-size: 2.2rem; }
+            #chat-container, #input-area { left: 10px; right: 10px; }
         }
     </style>
 </head>
@@ -297,7 +269,6 @@
     <div class="nav-links">
         <div class="nav-link active-link" id="nav-home" onclick="switchView('home-view')">Home</div>
         <div class="nav-link" id="nav-chat" onclick="switchView('chat-view')">Chat</div>
-        <div class="nav-link" onclick="alert('Functies pagina komt binnenkort!')">Functies</div>
     </div>
     <button class="header-btn" onclick="switchView('chat-view')">Start Chat</button>
 </header>
@@ -305,11 +276,10 @@
 <div id="home-view" class="view active">
     <div class="hero-badge">Next-Gen AI Assistent</div>
     <h1 class="hero-title">Push Your <span>Conversations</span><br>Beyond Limits</h1>
-    <p class="hero-subtitle">LimitedChats is gebouwd voor gebruikers die maximale snelheid, een strak design en diepgaande antwoorden eisen.</p>
+    <p class="hero-subtitle">LimitedChats is gebouwd voor gebruikers die maximale snelheid en diepgaande antwoorden eisen.</p>
     
     <div class="hero-buttons">
         <button class="btn-primary-large" onclick="switchView('chat-view')">Probeer Nu Gratis</button>
-        <button class="btn-outline" onclick="alert('Prijzen komen binnenkort!')">Bekijk Store</button>
     </div>
 
     <div class="stats-container">
@@ -330,7 +300,18 @@
     </div>
 </div>
 
+<script src="sleutel.js"></script>
+
 <script>
+    // Controleer of de API_KEY geladen is
+    if (typeof API_KEY === 'undefined') {
+        console.error("WAARSCHUWING: sleutel.js niet gevonden of API_KEY niet gedefinieerd!");
+        const warning = document.createElement('div');
+        warning.style.cssText = "position:fixed; top:0; background:red; color:white; width:100%; text-align:center; z-index:9999; padding:5px;";
+        warning.innerText = "Sleutel niet gevonden. De chat zal niet werken.";
+        document.body.prepend(warning);
+    }
+
     function switchView(viewId) {
         document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
         document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active-link'));
@@ -351,7 +332,7 @@
 
     async function sendMessage() {
         const message = inputField.value.trim();
-        if (!message) return;
+        if (!message || typeof API_KEY === 'undefined') return;
 
         appendMessage(message, 'user');
         inputField.value = '';
@@ -378,12 +359,17 @@
 
             const data = await response.json();
             removeLoadingIndicator(loadingId);
-            if (data.error) throw new Error(data.error.message);
+            
+            if (data.error) {
+                throw new Error(data.error.message);
+            }
+            
             appendMessage(data.choices[0].message.content, 'ai');
 
         } catch (error) {
             removeLoadingIndicator(loadingId);
-            appendMessage("Fout bij verbinden met AI.", 'error');
+            console.error(error);
+            appendMessage("Fout: Kon geen verbinding maken. Check je API key in sleutel.js.", 'error');
         } finally {
             sendBtn.disabled = false;
         }
@@ -402,7 +388,7 @@
         const div = document.createElement('div');
         div.id = id;
         div.className = 'message ai typing';
-        div.innerHTML = `<svg class="typing-star" viewBox="0 0 24 24"><path d="M12 2L14.71 8.35L21.37 9.87L16.48 14.5L17.65 21.14L12 18L6.35 21.14L7.52 14.5L2.63 9.87L9.29 8.35L12 2Z"/></svg><span class="typing-text">Typen...</span>`;
+        div.innerHTML = `<svg class="typing-star" viewBox="0 0 24 24"><path d="M12 2L14.71 8.35L21.37 9.87L16.48 14.5L17.65 21.14L12 18L6.35 21.14L7.52 14.5L2.63 9.87L9.29 8.35L12 2Z"/></svg><span class="typing-text">Aan het nadenken...</span>`;
         chatContainer.appendChild(div);
         chatContainer.scrollTop = chatContainer.scrollHeight;
         return id;
