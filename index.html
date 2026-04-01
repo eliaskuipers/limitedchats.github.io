@@ -258,6 +258,8 @@
             .nav-links { display: none; }
             header { padding: 15px 20px; }
             .hero-title { font-size: 2.2rem; }
+            .hero-buttons { flex-direction: column; width: 100%; max-width: 300px; }
+            .stats-container { gap: 20px; flex-wrap: wrap; justify-content: center; }
             #chat-container, #input-area { left: 10px; right: 10px; }
         }
     </style>
@@ -269,6 +271,7 @@
     <div class="nav-links">
         <div class="nav-link active-link" id="nav-home" onclick="switchView('home-view')">Home</div>
         <div class="nav-link" id="nav-chat" onclick="switchView('chat-view')">Chat</div>
+        <div class="nav-link" onclick="alert('Functies pagina komt binnenkort!')">Functies</div>
     </div>
     <button class="header-btn" onclick="switchView('chat-view')">Start Chat</button>
 </header>
@@ -276,10 +279,11 @@
 <div id="home-view" class="view active">
     <div class="hero-badge">Next-Gen AI Assistent</div>
     <h1 class="hero-title">Push Your <span>Conversations</span><br>Beyond Limits</h1>
-    <p class="hero-subtitle">LimitedChats is gebouwd voor gebruikers die maximale snelheid en diepgaande antwoorden eisen.</p>
+    <p class="hero-subtitle">LimitedChats is gebouwd voor gebruikers die maximale snelheid, een strak design en diepgaande antwoorden eisen.</p>
     
     <div class="hero-buttons">
         <button class="btn-primary-large" onclick="switchView('chat-view')">Probeer Nu Gratis</button>
+        <button class="btn-outline" onclick="alert('Prijzen komen binnenkort!')">Bekijk Store</button>
     </div>
 
     <div class="stats-container">
@@ -303,13 +307,9 @@
 <script src="sleutel.js"></script>
 
 <script>
-    // Controleer of de API_KEY geladen is
+    // Veiligheidscheck voor API_KEY
     if (typeof API_KEY === 'undefined') {
-        console.error("WAARSCHUWING: sleutel.js niet gevonden of API_KEY niet gedefinieerd!");
-        const warning = document.createElement('div');
-        warning.style.cssText = "position:fixed; top:0; background:red; color:white; width:100%; text-align:center; z-index:9999; padding:5px;";
-        warning.innerText = "Sleutel niet gevonden. De chat zal niet werken.";
-        document.body.prepend(warning);
+        console.error("sleutel.js ontbreekt!");
     }
 
     function switchView(viewId) {
@@ -360,16 +360,12 @@
             const data = await response.json();
             removeLoadingIndicator(loadingId);
             
-            if (data.error) {
-                throw new Error(data.error.message);
-            }
-            
+            if (data.error) throw new Error(data.error.message);
             appendMessage(data.choices[0].message.content, 'ai');
 
         } catch (error) {
             removeLoadingIndicator(loadingId);
-            console.error(error);
-            appendMessage("Fout: Kon geen verbinding maken. Check je API key in sleutel.js.", 'error');
+            appendMessage("Fout bij verbinden. Check je sleutel.js bestand.", 'error');
         } finally {
             sendBtn.disabled = false;
         }
@@ -388,7 +384,7 @@
         const div = document.createElement('div');
         div.id = id;
         div.className = 'message ai typing';
-        div.innerHTML = `<svg class="typing-star" viewBox="0 0 24 24"><path d="M12 2L14.71 8.35L21.37 9.87L16.48 14.5L17.65 21.14L12 18L6.35 21.14L7.52 14.5L2.63 9.87L9.29 8.35L12 2Z"/></svg><span class="typing-text">Aan het nadenken...</span>`;
+        div.innerHTML = `<svg class="typing-star" viewBox="0 0 24 24"><path d="M12 2L14.71 8.35L21.37 9.87L16.48 14.5L17.65 21.14L12 18L6.35 21.14L7.52 14.5L2.63 9.87L9.29 8.35L12 2Z"/></svg><span class="typing-text">Aan het typen...</span>`;
         chatContainer.appendChild(div);
         chatContainer.scrollTop = chatContainer.scrollHeight;
         return id;
